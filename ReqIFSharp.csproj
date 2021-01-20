@@ -1,0 +1,92 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+ 
+  <PropertyGroup>
+    <TargetFrameworks>net472</TargetFrameworks>
+	  <Version>2.1.0</Version>
+    <Description>ReqIF library that contains ReqIF classes and a specific serializer.</Description>
+	  <PackageId>ReqIFSharp_PlusObjects</PackageId>
+	  <Company>RHEA System S.A.</Company>
+	  <Copyright>Copyright 2017-2019 RHEA System S.A.</Copyright>
+	  <PackageProjectUrl>https://reqifsharp.org</PackageProjectUrl>
+	  <PackageLicenseUrl>http://www.apache.org/licenses/LICENSE-2.0</PackageLicenseUrl>
+	  <RepositoryUrl>https://github.com/LBRNZ/ReqIFSharp_PlusObjects</RepositoryUrl>
+	  <RepositoryType>Git</RepositoryType>
+	  <PackageIconUrl>https://reqifsharp.org/assets/images/reqifsharp-logo.png</PackageIconUrl>
+	  <PackageTags>ReqIF</PackageTags>
+	  <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+	  <Authors>Sam Gerene, Naron Phou</Authors>
+    <RequireLicenseAcceptance>false</RequireLicenseAcceptance>
+    <PackageReleaseNotes>
+      [Update] include files referred to in XHTML objects
+</PackageReleaseNotes>
+    <OutputType>Library</OutputType>
+    <AssemblyName>ReqIFSharp_PlusObjects</AssemblyName>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+    <DefineConstants>TRACE;DEBUG;</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <IncludeSymbols>true</IncludeSymbols>
+    <DefineConstants>RELEASE</DefineConstants>
+  </PropertyGroup>
+
+ 
+  <ItemGroup>
+    <None Remove="Resources\driver.xsd" />
+    <None Remove="Resources\reqif.xsd" />
+    <None Remove="Resources\xhtml-attribs-1.xsd" />
+    <None Remove="Resources\xhtml-blkphras-1.xsd" />
+    <None Remove="Resources\xhtml-blkpres-1.xsd" />
+    <None Remove="Resources\xhtml-blkstruct-1.xsd" />
+    <None Remove="Resources\xhtml-datatypes-1.xsd" />
+    <None Remove="Resources\xhtml-edit-1.xsd" />
+    <None Remove="Resources\xhtml-framework-1.xsd" />
+    <None Remove="Resources\xhtml-hypertext-1.xsd" />
+    <None Remove="Resources\xhtml-inlphras-1.xsd" />
+    <None Remove="Resources\xhtml-inlpres-1.xsd" />
+    <None Remove="Resources\xhtml-inlstruct-1.xsd" />
+    <None Remove="Resources\xhtml-inlstyle-1.xsd" />
+    <None Remove="Resources\xhtml-list-1.xsd" />
+    <None Remove="Resources\xhtml-object-1.xsd" />
+    <None Remove="Resources\xhtml-param-1.xsd" />
+    <None Remove="Resources\xhtml-pres-1.xsd" />
+    <None Remove="Resources\xhtml-table-1.xsd" />
+    <None Remove="Resources\xhtml-text-1.xsd" />
+    <None Remove="Resources\xml.xsd" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\driver.xsd" />
+    <EmbeddedResource Include="Resources\reqif.xsd" />
+    <EmbeddedResource Include="Resources\xhtml-attribs-1.xsd" />
+    <EmbeddedResource Include="Resources\xhtml-blkphras-1.xsd" />
+    <EmbeddedResource Include="Resources\xhtml-blkpres-1.xsd" />
+    <EmbeddedResource Include="Resources\xhtml-blkstruct-1.xsd" />
+    <EmbeddedResource Include="Resources\xhtml-datatypes-1.xsd" />
+    <EmbeddedResource Include="Resources\xhtml-edit-1.xsd" />
+    <EmbeddedResource Include="Resources\xhtml-framework-1.xsd" />
+    <EmbeddedResource Include="Resources\xhtml-hypertext-1.xsd" />
+    <EmbeddedResource Include="Resources\xhtml-inlphras-1.xsd" />
+    <EmbeddedResource Include="Resources\xhtml-inlpres-1.xsd" />
+    <EmbeddedResource Include="Resources\xhtml-inlstruct-1.xsd" />
+    <EmbeddedResource Include="Resources\xhtml-inlstyle-1.xsd" />
+    <EmbeddedResource Include="Resources\xhtml-list-1.xsd" />
+    <EmbeddedResource Include="Resources\xhtml-object-1.xsd" />
+    <EmbeddedResource Include="Resources\xhtml-param-1.xsd" />
+    <EmbeddedResource Include="Resources\xhtml-pres-1.xsd" />
+    <EmbeddedResource Include="Resources\xhtml-table-1.xsd" />
+    <EmbeddedResource Include="Resources\xhtml-text-1.xsd" />
+    <EmbeddedResource Include="Resources\xml.xsd" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Reference Include="System.Drawing">
+      <HintPath>C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.Drawing.dll</HintPath>
+    </Reference>
+    <Reference Include="System.IO.Compression" />
+  </ItemGroup>
+
+</Project>
