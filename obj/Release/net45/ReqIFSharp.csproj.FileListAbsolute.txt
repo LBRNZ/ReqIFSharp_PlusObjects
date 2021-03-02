@@ -1,8 +1,0 @@
-D:\Microsoft Visual Studio\Repos\ReqIF_Editor\ReqIFSharp\bin\Release\net45\ReqIFSharp.dll
-D:\Microsoft Visual Studio\Repos\ReqIF_Editor\ReqIFSharp\bin\Release\net45\ReqIFSharp.pdb
-D:\Microsoft Visual Studio\Repos\ReqIF_Editor\ReqIFSharp\obj\Release\net45\ReqIFSharp.csproj.CoreCompileInputs.cache
-D:\Microsoft Visual Studio\Repos\ReqIF_Editor\ReqIFSharp\obj\Release\net45\ReqIFSharp.AssemblyInfoInputs.cache
-D:\Microsoft Visual Studio\Repos\ReqIF_Editor\ReqIFSharp\obj\Release\net45\ReqIFSharp.AssemblyInfo.cs
-D:\Microsoft Visual Studio\Repos\ReqIF_Editor\ReqIFSharp\obj\Release\net45\ReqIFSharp.dll
-D:\Microsoft Visual Studio\Repos\ReqIF_Editor\ReqIFSharp\obj\Release\net45\ReqIFSharp.pdb
-D:\Microsoft Visual Studio\Repos\ReqIF_Editor\ReqIFSharp\obj\Release\net45\ReqIFSharp.csprojAssemblyReference.cache

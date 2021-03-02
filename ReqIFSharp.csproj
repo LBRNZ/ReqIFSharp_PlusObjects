@@ -3,19 +3,18 @@
  
   <PropertyGroup>
     <TargetFrameworks>net472</TargetFrameworks>
-	  <Version>2.1.0</Version>
+	  <Version>2.2.0</Version>
     <Description>ReqIF library that contains ReqIF classes and a specific serializer.</Description>
 	  <PackageId>ReqIFSharp_PlusObjects</PackageId>
-	  <Company>RHEA System S.A.</Company>
+	  <Company></Company>
 	  <Copyright>Copyright 2017-2019 RHEA System S.A.</Copyright>
 	  <PackageProjectUrl>https://reqifsharp.org</PackageProjectUrl>
 	  <PackageLicenseUrl>http://www.apache.org/licenses/LICENSE-2.0</PackageLicenseUrl>
 	  <RepositoryUrl>https://github.com/LBRNZ/ReqIFSharp_PlusObjects</RepositoryUrl>
 	  <RepositoryType>Git</RepositoryType>
-	  <PackageIconUrl>https://reqifsharp.org/assets/images/reqifsharp-logo.png</PackageIconUrl>
 	  <PackageTags>ReqIF</PackageTags>
 	  <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
-	  <Authors>Sam Gerene, Naron Phou</Authors>
+	  <Authors>Marc Lieberenz</Authors>
     <RequireLicenseAcceptance>false</RequireLicenseAcceptance>
     <PackageReleaseNotes>
       [Update] include files referred to in XHTML objects
