@@ -189,5 +189,28 @@ namespace ReqIFSharp
                 }
             }
         }
+        /// <summary>
+        /// Serialize a <see cref="ReqIF"/> object and return its content as string
+        /// </summary>
+        /// <param name="reqIf">
+        /// The <see cref="ReqIF"/> object to serialize
+        /// <exception cref="ArgumentNullException"></exception>
+        public string Serialize(ReqIF reqIf)
+        {
+            if (reqIf == null)
+            {
+                throw new ArgumentNullException("reqIf", "The reqIf object cannot be null.");
+            }
+
+
+            using (StringWriter textWriter = new StringWriter())
+            {
+                using (var writer = XmlWriter.Create(textWriter, new XmlWriterSettings { Indent = true }))
+                {
+                    this.xmlSerializer.Serialize(writer, reqIf);
+                }
+                return textWriter.ToString();
+            }
+        }
     }
 }
