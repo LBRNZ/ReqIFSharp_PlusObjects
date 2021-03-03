@@ -3,7 +3,7 @@
  
   <PropertyGroup>
     <TargetFrameworks>net472</TargetFrameworks>
-	  <Version>2.2.0</Version>
+	  <Version>2.2.1</Version>
     <Description>ReqIF library that contains ReqIF classes and a specific serializer.</Description>
 	  <PackageId>ReqIFSharp_PlusObjects</PackageId>
 	  <Company></Company>
@@ -16,9 +16,8 @@
 	  <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
 	  <Authors>Marc Lieberenz</Authors>
     <RequireLicenseAcceptance>false</RequireLicenseAcceptance>
-    <PackageReleaseNotes>
-      [Update] include files referred to in XHTML objects
-</PackageReleaseNotes>
+    <PackageReleaseNotes>* Ignore files referred to in XHTML objects that cannot be found
+* Added Serializer that returns a string	</PackageReleaseNotes>
     <OutputType>Library</OutputType>
     <AssemblyName>ReqIFSharp_PlusObjects</AssemblyName>
   </PropertyGroup>
