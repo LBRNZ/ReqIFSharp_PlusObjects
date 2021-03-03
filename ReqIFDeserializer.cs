@@ -185,16 +185,23 @@ namespace ReqIFSharp
                                         string imageName = imageObject.Attribute("data").Value;
                                         using (MemoryStream memoryStream = new MemoryStream())
                                         {
-                                            using (FileStream fileStream = new FileStream(System.IO.Path.GetDirectoryName(xmlFilePath) + "\\" + fileName, FileMode.Open, FileAccess.Read))
+                                            try
                                             {
-                                                fileStream.CopyTo(memoryStream);
-                                                reqIF.EmbeddedObjects.Add(new EmbeddedObject()
+                                                using (FileStream fileStream = new FileStream(System.IO.Path.GetDirectoryName(xmlFilePath) + "\\" + fileName, FileMode.Open, FileAccess.Read))
                                                 {
-                                                    Name = fileName,
-                                                    ImageName = imageName,
-                                                    ObjectValue = memoryStream,
-                                                    PreviewImage = new System.Drawing.Bitmap(System.IO.Path.GetDirectoryName(xmlFilePath) + "\\" + imageName)
-                                                });
+                                                    fileStream.CopyTo(memoryStream);
+                                                    reqIF.EmbeddedObjects.Add(new EmbeddedObject()
+                                                    {
+                                                        Name = fileName,
+                                                        ImageName = imageName,
+                                                        ObjectValue = memoryStream,
+                                                        PreviewImage = new System.Drawing.Bitmap(System.IO.Path.GetDirectoryName(xmlFilePath) + "\\" + imageName)
+                                                    });
+                                                }
+                                            }
+                                            catch (DirectoryNotFoundException dnfe)
+                                            {
+             
                                             }
                                         }
 
