@@ -96,6 +96,7 @@ namespace ReqIFSharp
 
                 this.values.Clear();
                 this.values.AddRange(enumValues);
+                NotifyPropertyChanged();
             }
         }
 
