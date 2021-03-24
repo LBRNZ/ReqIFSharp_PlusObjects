@@ -20,22 +20,21 @@
 
 namespace ReqIFSharp
 {
-    using System;
-    using System.Xml;
-    using System.Xml.Serialization;
     using System.ComponentModel;
     using System.Runtime.CompilerServices;
+    using System.Xml;
+    using System.Xml.Serialization;
 
     /// <summary>
     /// The <see cref="AttributeDefinition"/> is the base class for attribute values.
     /// </summary>
-    public abstract class AttributeValue : IXmlSerializable, INotifyPropertyChanged
+    public abstract class AttributeValue : IXmlSerializable
     {
         public event PropertyChangedEventHandler PropertyChanged;
         // This method is called by the Set accessor of each property.
         // The CallerMemberName attribute that is applied to the optional propertyName
         // parameter causes the property name of the caller to be substituted as an argument.
-        protected void NotifyPropertyChanged([CallerMemberName] String propertyName = "")
+        protected void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
         {
             if (PropertyChanged != null)
             {
@@ -75,7 +74,7 @@ namespace ReqIFSharp
         {
             this.SpecElAt = specElAt;
             this.SpecElAt.Values.Add(this);
-            this.ReqIFContent = this.SpecElAt.ReqIfContent;
+            this.ReqIFContent = this.SpecElAt.ReqIFContent;
         }
 
         /// <summary>

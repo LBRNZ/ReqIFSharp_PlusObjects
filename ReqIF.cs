@@ -22,76 +22,37 @@ namespace ReqIFSharp
 {
     using System;
     using System.Collections.Generic;
-    using System.Drawing;
-    using System.Linq;
+    using System.Xml;
     using System.Xml.Serialization;
 
     /// <summary>
     /// The <see cref="ReqIF"/> class constitutes the root element of a ReqIF Exchange Document.
     /// </summary>
     [Serializable]
-    [XmlType(TypeName = "REQ-IF", Namespace = "http://www.omg.org/spec/ReqIF/20110401/reqif.xsd")]
     [XmlRoot("REQ-IF", Namespace = "http://www.omg.org/spec/ReqIF/20110401/reqif.xsd", IsNullable = false)]
-    public class ReqIF
+    public class ReqIF : IXmlSerializable
     {
-        /// <summary>
-        /// Backing field for the <see cref="TheHeader"/> property.
-        /// </summary>
-        private readonly List<ReqIFHeader> theHeader = new List<ReqIFHeader>();
+        private List<XmlAttribute> attributes = new List<XmlAttribute>();
 
         /// <summary>
-        /// Backing field for the <see cref="CoreContent"/> property.
+        /// Gets the mandatory Exchange Document header, which contains metadata relevant for this exchange.
         /// </summary>
-        private readonly List<ReqIFContent> coreContent = new List<ReqIFContent>();
+        public ReqIFHeader TheHeader { get; set; }
 
         /// <summary>
-        /// Backing field for the <see cref="ToolExtensions"/> property.
+        /// Gets the mandatory Exchange Document content.
         /// </summary>
-        private readonly List<ReqIFToolExtension> toolExtensions = new List<ReqIFToolExtension>();
+        public ReqIFContent CoreContent { get; set; }
+
+        /// <summary>
+        /// Gets the optional Exchange Document content based on tool extensions, if such extensions and content are present.
+        /// </summary>
+        public List<ReqIFToolExtension> ToolExtension { get; set; } = new List<ReqIFToolExtension>();
 
         /// <summary>
         /// Backing field for the <see cref="EmbeddedObjects"/> property.
         /// </summary>
         private readonly List<EmbeddedObject> embeddedObjects = new List<EmbeddedObject>();
-
-        /// <summary>
-        /// Gets the mandatory Exchange Document header, which contains metadata relevant for this exchange.
-        /// </summary>
-        [XmlArray("THE-HEADER")]
-        [XmlArrayItem(IsNullable = false)]
-        public List<ReqIFHeader> TheHeader
-        {
-            get
-            {
-                return this.theHeader;
-            }
-        }
-
-        /// <summary>
-        /// Gets the mandatory Exchange Document content.
-        /// </summary>
-        [XmlArray("CORE-CONTENT")]
-        [XmlArrayItem("REQ-IF-CONTENT", typeof(ReqIFContent))]
-        public List<ReqIFContent> CoreContent 
-        {
-            get
-            {
-                return this.coreContent;
-            }
-        }
-
-        /// <summary>
-        /// Gets the optional Exchange Document content based on tool extensions, if such extensions and content are present.
-        /// </summary>
-        [XmlArray("TOOL-EXTENSIONS")]
-        [XmlArrayItem(IsNullable = false)]
-        public List<ReqIFToolExtension> ToolExtensions 
-        {
-            get
-            {
-                return this.toolExtensions;
-            }
-        }
 
         /// <summary>
         /// Gets the optional preview images referenced in XHTML Attribute Values.
@@ -111,22 +72,169 @@ namespace ReqIFSharp
         /// <remarks>
         /// The format is defined by the standard for specifying languages in XML documents proposed by the W3C <see cref="http://www.w3.org/TR/xml11/#sec-lang-tag"/>
         /// </remarks>
-        [XmlAttribute(AttributeName = "lang", Form = System.Xml.Schema.XmlSchemaForm.Qualified, Namespace = "http://www.w3.org/XML/1998/namespace")]
         public string Lang { get; set; }
 
         /// <summary>
-        /// Merge multiple <see cref="ReqIF"/> instances into one <see cref="ReqIF"/>
+        /// This method is reserved and should not be used.
         /// </summary>
-        /// <param name="reqifs">The <see cref="ReqIF"/> to merge</param>
-        /// <returns>The <see cref="ReqIF"/></returns>
-        internal static ReqIF MergeReqIf(IReadOnlyList<ReqIF> reqifs)
+        /// <returns>returns null</returns>
+        /// <remarks>
+        /// When implementing the IXmlSerializable interface, you should return null
+        /// </remarks>
+        public System.Xml.Schema.XmlSchema GetSchema()
         {
-            var reqif = new ReqIF();
-            reqif.TheHeader.AddRange(reqifs.SelectMany(x => x.TheHeader));
-            reqif.CoreContent.AddRange(reqifs.SelectMany(x => x.CoreContent));
-            reqif.ToolExtensions.AddRange(reqifs.SelectMany(x => x.ToolExtensions));
-            reqif.Lang = reqifs.FirstOrDefault(x => !string.IsNullOrWhiteSpace(x.Lang))?.Lang ?? string.Empty;
-            return reqif;
+            return null;
+        }
+
+        /// <summary>
+        /// Generates a <see cref="ReqIF"/> object from its XML representation.
+        /// </summary>
+        /// <param name="reader">
+        /// an instance of <see cref="XmlReader"/>
+        /// </param>
+        public void ReadXml(XmlReader reader)
+        {
+            this.Lang = reader.GetAttribute("xml:lang");
+
+            while (reader.MoveToNextAttribute())
+            {
+                if (reader.Name != "xml:lang")
+                {
+                    var xmlAttribute = new ReqIFSharp.XmlAttribute
+                    {
+                        Prefix = reader.Prefix,
+                        LocalName = reader.LocalName,
+                        Value = reader.Value
+                    };
+
+                    attributes.Add(xmlAttribute);
+                }
+            }
+
+            while (reader.Read())
+            {
+                if (reader.MoveToContent() == XmlNodeType.Element)
+                {
+                    switch (reader.LocalName)
+                    {
+                        case "THE-HEADER":
+                            var headerSubTreeXmlReader = reader.ReadSubtree();
+                            this.TheHeader = new ReqIFHeader { DocumentRoot = this };
+                            this.TheHeader.ReadXml(headerSubTreeXmlReader);
+                            break;
+                        case "CORE-CONTENT":
+                            var coreContentTreeXmlReader = reader.ReadSubtree();
+                            this.CoreContent = new ReqIFContent { DocumentRoot = this };
+                            this.CoreContent.ReadXml(coreContentTreeXmlReader);
+                            break;
+                        case "TOOL-EXTENSIONS":
+                            var toolExtensionsXmlReader = reader.ReadSubtree();
+
+                            while (toolExtensionsXmlReader.Read())
+                            {
+                                if (toolExtensionsXmlReader.MoveToContent() == XmlNodeType.Element && toolExtensionsXmlReader.LocalName == "REQ-IF-TOOL-EXTENSION")
+                                {
+                                    var reqIfToolExtensionSubTreeXmlReader = toolExtensionsXmlReader.ReadSubtree();
+
+                                    var reqIfToolExtension = new ReqIFToolExtension();
+                                    reqIfToolExtension.ReadXml(reqIfToolExtensionSubTreeXmlReader);
+                                    this.ToolExtension.Add(reqIfToolExtension);
+                                }
+                            }
+                            break;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Converts a <see cref="ReqIF"/> object into its XML representation.
+        /// </summary>
+        /// <param name="writer">
+        /// an instance of <see cref="XmlWriter"/>
+        /// </param>
+        public void WriteXml(XmlWriter writer)
+        {
+            if (!string.IsNullOrEmpty(this.Lang))
+            {
+                writer.WriteAttributeString("lang", "xml", this.Lang);
+            }
+
+            foreach (var xmlAttribute in this.attributes)
+            {
+                if (xmlAttribute.Prefix != string.Empty)
+                {
+                    if (xmlAttribute.Prefix == "xmlns")
+                    {
+                        writer.WriteAttributeString(xmlAttribute.Prefix, xmlAttribute.LocalName,  null, xmlAttribute.Value);
+                    }
+                    else
+                    {
+                        writer.WriteAttributeString(xmlAttribute.LocalName, xmlAttribute.Prefix, xmlAttribute.Value);
+                    }
+                }
+                else
+                {
+                    writer.WriteAttributeString(xmlAttribute.LocalName, xmlAttribute.Value);
+                }
+            }
+
+            this.WriteTheHeader(writer);
+            this.WriteCoreContent(writer);
+            this.WriteToolExtension(writer);
+        }
+
+        /// <summary>
+        /// Writes the <see cref="ReqIFHeader"/> 
+        /// </summary>
+        /// <param name="writer">
+        /// an instance of <see cref="XmlWriter"/>
+        /// </param>
+        private void WriteTheHeader(XmlWriter writer)
+        {
+            writer.WriteStartElement("THE-HEADER");
+            writer.WriteStartElement("REQ-IF-HEADER");
+            this.TheHeader.WriteXml(writer);
+            writer.WriteEndElement();
+            writer.WriteEndElement();
+        }
+
+        /// <summary>
+        /// Writes the <see cref="ReqIFContent"/> 
+        /// </summary>
+        /// <param name="writer">
+        /// an instance of <see cref="XmlWriter"/>
+        /// </param>
+        private void WriteCoreContent(XmlWriter writer)
+        {
+            writer.WriteStartElement("CORE-CONTENT");
+            writer.WriteStartElement("REQ-IF-CONTENT");
+            this.CoreContent.WriteXml(writer);
+            writer.WriteEndElement();
+            writer.WriteEndElement();
+        }
+
+        /// <summary>
+        /// Writes the <see cref="ReqIFToolExtension"/> 
+        /// </summary>
+        /// <param name="writer">
+        /// an instance of <see cref="XmlWriter"/>
+        /// </param>
+        private void WriteToolExtension(XmlWriter writer)
+        {
+            if (this.ToolExtension.Count == 0)
+            {
+                return;
+            }
+
+            writer.WriteStartElement("TOOL-EXTENSIONS");
+            foreach (var reqIfToolExtension in this.ToolExtension)
+            {
+                writer.WriteStartElement("REQ-IF-TOOL-EXTENSION");
+                reqIfToolExtension.WriteXml(writer);
+                writer.WriteEndElement();
+            }
+            writer.WriteEndElement();
         }
     }
 }

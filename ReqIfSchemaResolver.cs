@@ -25,6 +25,7 @@ namespace ReqIFSharp
     using System.Xml;
     using System.Xml.Schema;
 
+#if NETFRAMEWORK || NETSTANDARD2_0
 
     /// <summary>
     /// The purpose of the <see cref="ReqIfSchemaResolver"/> is to resolve the imported and included
@@ -51,7 +52,7 @@ namespace ReqIFSharp
 
             var type = this.GetType();
             var @namespace = type.Namespace;
-            this.resourcePath = string.Format("{0}.Resources.", @namespace);
+            this.resourcePath = $"{@namespace}.Resources.";
         }
 
         /// <summary>
@@ -82,4 +83,6 @@ namespace ReqIFSharp
             return stream;
         }
     }
+
+#endif
 }

@@ -151,21 +151,24 @@ namespace ReqIFSharp
 
             while (reader.Read())
             {
-                if (reader.MoveToContent() == XmlNodeType.Element && reader.LocalName == "OBJECT")
+                if (reader.MoveToContent() == XmlNodeType.Element)
                 {
-                    using (var subtree = reader.ReadSubtree())
+                    switch (reader.LocalName)
                     {
-                        subtree.MoveToContent();
-                        this.DeserializeObject(subtree);
-                    }
-                }
-
-                if (reader.MoveToContent() == XmlNodeType.Element && reader.LocalName == "CHILDREN")
-                {
-                    using (var subtree = reader.ReadSubtree())
-                    {
-                        subtree.MoveToContent();
-                        this.DeserializeSpecHierarchy(subtree);
+                        case "OBJECT":
+                            using (var subtree = reader.ReadSubtree())
+                            {
+                                subtree.MoveToContent();
+                                this.DeserializeObject(subtree);
+                            }
+                            break;
+                        case "CHILDREN":
+                            using (var subtree = reader.ReadSubtree())
+                            {
+                                subtree.MoveToContent();
+                                this.DeserializeSpecHierarchy(subtree);
+                            }
+                            break;
                     }
                 }
             }
@@ -184,12 +187,15 @@ namespace ReqIFSharp
         {
             if (this.Object == null)
             {
-                throw new SerializationException(string.Format("The Object property of SpecHierarchy {0}:{1} may not be null", this.Identifier, this.LongName));
+                throw new SerializationException($"The Object property of SpecHierarchy {this.Identifier}:{this.LongName} may not be null");
             }
 
             base.WriteXml(writer);
 
-            writer.WriteAttributeString("IS-TABLE-INTERNAL", this.IsTableInternal ? "true" : "false");
+            if (this.IsTableInternal)
+            {
+                writer.WriteAttributeString("IS-TABLE-INTERNAL", "true");
+            }
 
             this.WriteObject(writer);
 
@@ -245,9 +251,7 @@ namespace ReqIFSharp
             {
                 if (reader.MoveToContent() == XmlNodeType.Element && reader.LocalName == "SPEC-HIERARCHY")
                 {
-                    bool isTableInternal;
-
-                    if (bool.TryParse(reader.GetAttribute("IS-TABLE-INTERNAL"), out isTableInternal))
+                    if (bool.TryParse(reader.GetAttribute("IS-TABLE-INTERNAL"), out var isTableInternal))
                     {
                         this.IsTableInternal = isTableInternal;
                     }
@@ -353,6 +357,11 @@ namespace ReqIFSharp
         /// </param>
         private void WriteChildren(XmlWriter writer)
         {
+            if (this.children.Count == 0)
+            {
+                return;
+            }
+
             writer.WriteStartElement("CHILDREN");
 
             foreach (var specHierarchy in this.children)

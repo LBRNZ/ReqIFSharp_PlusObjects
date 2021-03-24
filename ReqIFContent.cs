@@ -21,10 +21,9 @@
 namespace ReqIFSharp
 {
     using System.Collections.Generic;
-    using System.Collections.ObjectModel;
     using System.Xml;
     using System.Xml.Serialization;
-    
+
     /// <summary>
     /// The <see cref="ReqIFContent"/> class represents the mandatory content of a ReqIF Exchange Document.
     /// </summary>
@@ -43,7 +42,7 @@ namespace ReqIFSharp
         /// <summary>
         /// Backing field for the <see cref="SpecObjects"/> property.
         /// </summary>
-        private readonly ObservableCollection<SpecObject> specObjects = new ObservableCollection<SpecObject>();
+        private readonly List<SpecObject> specObjects = new List<SpecObject>();
 
         /// <summary>
         /// Backing field for the <see cref="SpecRelations"/> property.
@@ -85,7 +84,7 @@ namespace ReqIFSharp
         /// <summary>
         /// Gets the <see cref="SpecObject"/>
         /// </summary>
-        public ObservableCollection<SpecObject> SpecObjects 
+        public List<SpecObject> SpecObjects 
         {
             get
             {
@@ -141,57 +140,52 @@ namespace ReqIFSharp
         {
             while (reader.Read())
             {
-                if (reader.MoveToContent() == XmlNodeType.Element && reader.LocalName == "DATATYPES")
+                if (reader.MoveToContent() == XmlNodeType.Element)
                 {
-                    using (var subtree = reader.ReadSubtree())
+                    switch (reader.LocalName)
                     {
-                        subtree.MoveToContent();
-                        this.DeserializeDataTypes(subtree);
-                    }
-                }
-
-                if (reader.MoveToContent() == XmlNodeType.Element && reader.LocalName == "SPEC-TYPES")
-                {
-                    using (var subtree = reader.ReadSubtree())
-                    {
-                        subtree.MoveToContent();
-                        this.DeserializeSpecTypes(subtree);                    
-                    }                    
-                }
-
-                if (reader.MoveToContent() == XmlNodeType.Element && reader.LocalName == "SPEC-OBJECTS")
-                {
-                    using (var subtree = reader.ReadSubtree())
-                    {
-                        subtree.MoveToContent();
-                        this.DeserializeSpectObjects(subtree);
-                    }                    
-                }
-
-                if (reader.MoveToContent() == XmlNodeType.Element && reader.LocalName == "SPEC-RELATIONS")
-                {
-                    using (var subtree = reader.ReadSubtree())
-                    {
-                        subtree.MoveToContent();
-                        this.DeserializeSpecRelations(subtree);
-                    }
-                }
-
-                if (reader.MoveToContent() == XmlNodeType.Element && reader.LocalName == "SPECIFICATIONS")
-                {
-                    using (var subtree = reader.ReadSubtree())
-                    {
-                        subtree.MoveToContent();
-                        this.DeserializeSpecifications(subtree);
-                    }
-                }
-
-                if (reader.MoveToContent() == XmlNodeType.Element && reader.LocalName == "SPEC-RELATION-GROUPS")
-                {
-                    using (var subtree = reader.ReadSubtree())
-                    {
-                        subtree.MoveToContent();
-                        this.DeserializeRelationGroups(subtree);
+                        case "DATATYPES":
+                            using (var dataTypesSubtree = reader.ReadSubtree())
+                            {
+                                dataTypesSubtree.MoveToContent();
+                                this.DeserializeDataTypes(dataTypesSubtree);
+                            }
+                            break;
+                        case "SPEC-TYPES":
+                            using (var specTypesSubtree = reader.ReadSubtree())
+                            {
+                                specTypesSubtree.MoveToContent();
+                                this.DeserializeSpecTypes(specTypesSubtree);
+                            }
+                            break;
+                        case "SPEC-OBJECTS":
+                            using (var specObjectsSubtree = reader.ReadSubtree())
+                            {
+                                specObjectsSubtree.MoveToContent();
+                                this.DeserializeSpectObjects(specObjectsSubtree);
+                            }
+                            break;
+                        case "SPEC-RELATIONS":
+                            using (var specRelationsSubtree = reader.ReadSubtree())
+                            {
+                                specRelationsSubtree.MoveToContent();
+                                this.DeserializeSpecRelations(specRelationsSubtree);
+                            }
+                            break;
+                        case "SPECIFICATIONS":
+                            using (var specificationsSubtree = reader.ReadSubtree())
+                            {
+                                specificationsSubtree.MoveToContent();
+                                this.DeserializeSpecifications(specificationsSubtree);
+                            }
+                            break;
+                        case "SPEC-RELATION-GROUPS":
+                            using (var specRelationGroupsSubtree = reader.ReadSubtree())
+                            {
+                                specRelationGroupsSubtree.MoveToContent();
+                                this.DeserializeRelationGroups(specRelationGroupsSubtree);
+                            }
+                            break;
                     }
                 }
             }
@@ -372,6 +366,11 @@ namespace ReqIFSharp
         /// </param>
         private void WriteDataDefinitions(XmlWriter writer)
         {
+            if (this.dataTypes.Count == 0)
+            {
+                return;
+            }
+
             writer.WriteStartElement("DATATYPES");
 
             foreach (var datatypeDefinition in this.dataTypes)
@@ -393,6 +392,11 @@ namespace ReqIFSharp
         /// </param>
         private void WriteSpecTypes(XmlWriter writer)
         {
+            if (this.specTypes.Count == 0)
+            {
+                return;
+            }
+
             writer.WriteStartElement("SPEC-TYPES");
 
             foreach (var specType in this.specTypes)

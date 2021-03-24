@@ -53,6 +53,7 @@ namespace ReqIFSharp
         /// </summary>
         private readonly XmlReaderSettings xmlReaderSettings = new XmlReaderSettings();
 
+#if NETFRAMEWORK || NETSTANDARD2_0
         /// <summary>
         /// The <see cref="ReqIF"/> <see cref="XmlSchemaSet"/>
         /// </summary>
@@ -62,7 +63,9 @@ namespace ReqIFSharp
         /// A value that indicates whether the <see cref="ReqIF"/> file should be validated against the schema
         /// </summary>
         private readonly bool shouldBeValidated;
+#endif
 
+#if NETFRAMEWORK || NETSTANDARD2_0
         /// <summary>
         /// Initializes a new instance of the <see cref="ReqIFSerializer"/> class. 
         /// </summary>
@@ -83,7 +86,16 @@ namespace ReqIFSharp
             this.xmlReaderSettings.ValidationType = ValidationType.Schema;
             this.xmlReaderSettings.Schemas.Add(this.reqIFSchemaSet);
         }
+#else
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ReqIFSerializer"/> class. 
+        /// </summary>
+        public ReqIFSerializer()
+        {
+        }
+#endif
 
+#if NETFRAMEWORK || NETSTANDARD2_0
         /// <summary>
         /// Serialize a <see cref="ReqIF"/> object and write its content in an XML-file in the corresponding path
         /// </summary>
@@ -108,17 +120,17 @@ namespace ReqIFSharp
         {
             if (reqIf == null)
             {
-                throw new ArgumentNullException("reqIf", "The reqIf object cannot be null.");
+                throw new ArgumentNullException(nameof(reqIf), "The reqIf object cannot be null.");
             }
 
             if (fileUri == null)
             {
-                throw new ArgumentNullException("fileUri", "The path of the file cannot be null.");
+                throw new ArgumentNullException(nameof(fileUri), "The path of the file cannot be null.");
             }
 
             if (fileUri == string.Empty)
             {
-                throw new ArgumentOutOfRangeException("fileUri", "The path of the file cannot be empty.");
+                throw new ArgumentOutOfRangeException(nameof(fileUri), "The path of the file cannot be empty.");
             }
 
             if (this.shouldBeValidated)
@@ -148,6 +160,31 @@ namespace ReqIFSharp
                 }
             }
         }
+
+        /// <summary>
+        /// Serialize a <see cref="ReqIF"/> object and return its content as string
+        /// </summary>
+        /// <param name="reqIf">
+        /// The <see cref="ReqIF"/> object to serialize
+        /// <exception cref="ArgumentNullException"></exception>
+        public string Serialize(ReqIF reqIf)
+        {
+            if (reqIf == null)
+            {
+                throw new ArgumentNullException("reqIf", "The reqIf object cannot be null.");
+            }
+
+
+            using (StringWriter textWriter = new StringWriter())
+            {
+                using (var writer = XmlWriter.Create(textWriter, new XmlWriterSettings { Indent = true }))
+                {
+                    this.xmlSerializer.Serialize(writer, reqIf);
+                }
+                return textWriter.ToString();
+            }
+        }
+#else
         /// <summary>
         /// Serialize a <see cref="ReqIF"/> object and write its content in an XML-file in the corresponding path
         /// </summary>
@@ -167,17 +204,17 @@ namespace ReqIFSharp
         {
             if (reqIf == null)
             {
-                throw new ArgumentNullException("reqIf", "The reqIf object cannot be null.");
+                throw new ArgumentNullException(nameof(reqIf), "The reqIf object cannot be null.");
             }
 
             if (fileUri == null)
             {
-                throw new ArgumentNullException("fileUri", "The path of the file cannot be null.");
+                throw new ArgumentNullException(nameof(fileUri), "The path of the file cannot be null.");
             }
 
             if (fileUri == string.Empty)
             {
-                throw new ArgumentOutOfRangeException("fileUri", "The path of the file cannot be empty.");
+                throw new ArgumentOutOfRangeException(nameof(fileUri), "The path of the file cannot be empty.");
             }
 
 
@@ -212,5 +249,6 @@ namespace ReqIFSharp
                 return textWriter.ToString();
             }
         }
+#endif
     }
 }

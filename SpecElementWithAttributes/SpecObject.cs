@@ -51,7 +51,7 @@ namespace ReqIFSharp
         internal SpecObject(ReqIFContent reqIfContent)
             : base(reqIfContent)
         {
-            this.ReqIfContent.SpecObjects.Add(this);
+            this.ReqIFContent.SpecObjects.Add(this);
         }
 
         /// <summary>
@@ -97,7 +97,7 @@ namespace ReqIFSharp
             if (reader.ReadToDescendant("SPEC-OBJECT-TYPE-REF"))
             {
                 var reference = reader.ReadElementContentAsString();
-                var specType = this.ReqIfContent.SpecTypes.SingleOrDefault(x => x.Identifier == reference);
+                var specType = this.ReqIFContent.SpecTypes.SingleOrDefault(x => x.Identifier == reference);
                 this.Type = (SpecObjectType)specType;                    
             }
         }
@@ -128,7 +128,7 @@ namespace ReqIFSharp
         {
             if (this.Type == null)
             {
-                throw new SerializationException(string.Format("The Type property of SpecObject {0}:{1} may not be null", this.Identifier, this.LongName));
+                throw new SerializationException($"The Type property of SpecObject {this.Identifier}:{this.LongName} may not be null");
             }
 
             base.WriteXml(writer);

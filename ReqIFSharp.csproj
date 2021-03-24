@@ -2,9 +2,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
  
   <PropertyGroup>
-    <TargetFrameworks>net472</TargetFrameworks>
-	  <Version>2.2.1</Version>
-    <Description>ReqIF library that contains ReqIF classes and a specific serializer.</Description>
+    <TargetFrameworks>netstandard2.0;net472</TargetFrameworks>
+	  <Version>3.1.0</Version>
+    <Description>Fork of ReqIFSharp that additionally loads embedded Objects</Description>
 	  <PackageId>ReqIFSharp_PlusObjects</PackageId>
 	  <Company></Company>
 	  <Copyright>Copyright 2017-2019 RHEA System S.A.</Copyright>
@@ -16,8 +16,7 @@
 	  <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
 	  <Authors>Marc Lieberenz</Authors>
     <RequireLicenseAcceptance>false</RequireLicenseAcceptance>
-    <PackageReleaseNotes>* Ignore files referred to in XHTML objects that cannot be found
-* Added Serializer that returns a string	</PackageReleaseNotes>
+    <PackageReleaseNotes>* Updated to ReqIFSharp 3.0.0	</PackageReleaseNotes>
     <OutputType>Library</OutputType>
     <AssemblyName>ReqIFSharp_PlusObjects</AssemblyName>
   </PropertyGroup>

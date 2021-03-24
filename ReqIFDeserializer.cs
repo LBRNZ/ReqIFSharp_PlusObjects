@@ -20,21 +20,30 @@
 
 namespace ReqIFSharp
 {
-
+#if NETFRAMEWORK || NETSTANDARD2_0
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.IO.Compression;
     using System.Linq;
     using System.Reflection;
-    using System.Text.RegularExpressions;
     using System.Resources;
     using System.Xml;
     using System.Xml.Linq;
     using System.Xml.Schema;
     using System.Xml.Serialization;
-    using System.IO.MemoryMappedFiles;
-
+#else
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.IO.Compression;
+    using System.Linq;
+    using System.Reflection;
+    using System.Resources;
+    using System.Xml;
+    using System.Xml.Schema;
+    using System.Xml.Serialization;    
+#endif
 
     /// <summary>
     /// The purpose of the <see cref="ReqIFDeserializer"/> is to deserialize a <see cref="ReqIF"/> XML document
@@ -42,6 +51,7 @@ namespace ReqIFSharp
     /// </summary>
     public class ReqIFDeserializer : IReqIFDeSerializer
     {
+#if NETFRAMEWORK || NETSTANDARD2_0
 
         /// <summary>
         /// Deserializes a <see cref="ReqIF"/> XML document.
@@ -58,7 +68,7 @@ namespace ReqIFSharp
         /// <returns>
         /// A fully dereferenced <see cref="ReqIF"/> object graph
         /// </returns>
-        public ReqIF Deserialize(string xmlFilePath, bool validate = false, ValidationEventHandler validationEventHandler = null)
+        public IEnumerable<ReqIF> Deserialize(string xmlFilePath, bool validate = false, ValidationEventHandler validationEventHandler = null)
         {
             if (string.IsNullOrEmpty(xmlFilePath))
             {
@@ -73,6 +83,7 @@ namespace ReqIFSharp
             return validate ? this.ValidatingDeserialization(xmlFilePath, validationEventHandler) : this.NonValidatingDeserialization(xmlFilePath);
         }
 
+#else
 
         /// <summary>
         /// Deserializes a <see cref="ReqIF"/> XML document.
@@ -83,7 +94,7 @@ namespace ReqIFSharp
         /// <returns>
         /// A fully dereferenced <see cref="ReqIF"/> object graph
         /// </returns>
-        public ReqIF Deserialize(string xmlFilePath)
+        public IEnumerable<ReqIF> Deserialize(string xmlFilePath)
         {
             if (string.IsNullOrEmpty(xmlFilePath))
             {
@@ -102,7 +113,65 @@ namespace ReqIFSharp
         /// <returns>
         /// A fully dereferenced <see cref="ReqIF"/> object graph
         /// </returns>
-        private ReqIF NonValidatingDeserialization(string xmlFilePath)
+        private IEnumerable<ReqIF> NonValidatingDeserialization(string xmlFilePath)
+        {
+            XmlReader xmlReader;
+            var settings = new XmlReaderSettings();
+            var xmlSerializer = new XmlSerializer(typeof(ReqIF));
+
+            try
+            {
+                using (var archive = ZipFile.OpenRead(xmlFilePath))
+                {
+                    var reqifEntries = archive.Entries.Where(x => x.Name.EndsWith(".reqif", StringComparison.CurrentCultureIgnoreCase)).ToArray();
+                    if (reqifEntries.Length == 0)
+                    {
+                        throw new FileNotFoundException($"No reqif file could be found in the archive.");
+                    }
+
+                    var reqifs = new List<ReqIF>();
+                    foreach (var zipArchiveEntry in reqifEntries)
+                    {
+                        using (xmlReader = XmlReader.Create(zipArchiveEntry.Open()))
+                        {
+                            reqifs.Add((ReqIF)xmlSerializer.Deserialize(xmlReader));
+                        }
+                    }
+
+                    return reqifs;
+                }
+            }
+            catch (Exception e)
+            {
+                if (e is InvalidDataException || e is NotSupportedException)
+                {
+                    using (xmlReader = XmlReader.Create(xmlFilePath, settings))
+                    {
+                        var reqifs = new List<ReqIF>();
+                        reqifs.Add((ReqIF)xmlSerializer.Deserialize(xmlReader));
+
+                        return reqifs;
+                    }
+                }
+
+                throw;
+            }
+        }
+
+#endif
+
+#if NETFRAMEWORK || NETSTANDARD2_0
+
+        /// <summary>
+        /// Deserializes a <see cref="ReqIF"/> XML document without validation of the content of the document.
+        /// </summary>
+        /// <param name="xmlFilePath">
+        ///     The Path of the <see cref="ReqIF"/> file to deserialize
+        /// </param>
+        /// <returns>
+        /// A fully dereferenced <see cref="ReqIF"/> object graph
+        /// </returns>
+        private IEnumerable<ReqIF> NonValidatingDeserialization(string xmlFilePath)
         {
             XmlReader xmlReader;
             var settings = new XmlReaderSettings();
@@ -123,43 +192,27 @@ namespace ReqIFSharp
                     var reqifs = new List<ReqIF>();
                     foreach (var zipArchiveEntry in reqIfEntries)
                     {
+                        ReqIF reqif;
                         using (xmlReader = XmlReader.Create(zipArchiveEntry.Open()))
                         {
-                            reqifs.Add((ReqIF)xmlSerializer.Deserialize(xmlReader));
+                            reqif = (ReqIF) xmlSerializer.Deserialize(xmlReader);
+
+                            reqifs.Add(reqif);
                         }
-                    }
-                    var reqIF = ReqIF.MergeReqIf(reqifs);
-                    foreach(SpecObject specObject in reqIF.CoreContent.FirstOrDefault().SpecObjects)
-                    {
-                        foreach( var attributeValue in specObject.Values)
+                        //Load embedded objects
+                        foreach (ZipArchiveEntry entry in embeddedObjectEntries)
                         {
-                            if(attributeValue.GetType() == typeof(AttributeValueXHTML))
+                            Stream file = entry.Open();
+                            MemoryStream fileStream = new MemoryStream();
+                            file.CopyTo(fileStream);
+                            reqif.EmbeddedObjects.Add(new EmbeddedObject()
                             {
-                                XDocument parsedXHTML = XDocument.Parse(attributeValue.ObjectValue.ToString());
-                                var xhtmlObjects = parsedXHTML.Descendants().Where(x => x.Name.LocalName == "object");
-                                if(xhtmlObjects.Count() >= 1)
-                                {
-                                    XElement imageObject = xhtmlObjects.Where(x => x.Attribute("type").Value == "image/png").FirstOrDefault();
-                                    XElement fileObject = xhtmlObjects.Where(x => x.Attribute("type").Value != "image/png").DefaultIfEmpty(imageObject).First();
-                                    string fileName = fileObject.Attribute("data").Value;
-                                    string imageName = imageObject.Attribute("data").Value;
-                                    Stream file = embeddedObjectEntries.Where(x => x.FullName == fileName).First().Open();
-                                    using (MemoryStream fileStream = new MemoryStream())
-                                    {
-                                        file.CopyTo(fileStream);
-                                        reqIF.EmbeddedObjects.Add(new EmbeddedObject()
-                                        {
-                                            Name = fileName,
-                                            ImageName = imageName,
-                                            ObjectValue = fileStream,
-                                            PreviewImage = new System.Drawing.Bitmap(embeddedObjectEntries.Where(x => x.FullName == xhtmlObjects.Where(b => b.Attribute("type").Value == "image/png").FirstOrDefault().Attribute("data").Value).First().Open())
-                                        });
-                                    }
-                                }
-                            }
+                                Name = entry.FullName,
+                                ObjectValue = fileStream
+                            });
                         }
                     }
-                    return reqIF;
+                    return reqifs;
                 }
             }
             catch (Exception e)
@@ -168,48 +221,46 @@ namespace ReqIFSharp
                 {
                     using (xmlReader = XmlReader.Create(xmlFilePath, settings))
                     {
-                        var reqIF = (ReqIF)xmlSerializer.Deserialize(xmlReader);
-                        foreach(SpecObject specObject in reqIF.CoreContent.FirstOrDefault().SpecObjects)
+                        var reqifs = new List<ReqIF>();
+                        var reqif = (ReqIF)xmlSerializer.Deserialize(xmlReader);
+                        reqifs.Add(reqif);
+
+                        foreach (SpecObject specObject in reqif.CoreContent.SpecObjects)
                         {
-                            foreach( var attributeValue in specObject.Values)
+                            foreach (var attributeValue in specObject.Values)
                             {
-                                if(attributeValue.GetType() == typeof(AttributeValueXHTML))
+                                if (attributeValue.GetType() == typeof(AttributeValueXHTML))
                                 {
                                     XDocument parsedXHTML = XDocument.Parse(attributeValue.ObjectValue.ToString());
-                                    var xhtmlObjects = parsedXHTML.Descendants().Where(x => x.Name.LocalName == "object");
+                                    List<XElement> xhtmlObjects = parsedXHTML.Descendants().Where(x => x.Name.LocalName == "object").ToList();
                                     if (xhtmlObjects.Count() >= 1)
                                     {
-                                        XElement imageObject = xhtmlObjects.Where(x => x.Attribute("type").Value == "image/png").FirstOrDefault();
-                                        XElement fileObject = xhtmlObjects.Where(x => x.Attribute("type").Value != "image/png").DefaultIfEmpty(imageObject).First();
-                                        string fileName = fileObject.Attribute("data").Value;
-                                        string imageName = imageObject.Attribute("data").Value;
-                                        using (MemoryStream memoryStream = new MemoryStream())
+                                        foreach (XElement xhtmlObject in xhtmlObjects)
                                         {
+                                            string fileName = xhtmlObject.Attribute("data").Value;
+                                            MemoryStream memoryStream = new MemoryStream();
                                             try
                                             {
                                                 using (FileStream fileStream = new FileStream(System.IO.Path.GetDirectoryName(xmlFilePath) + "\\" + fileName, FileMode.Open, FileAccess.Read))
                                                 {
                                                     fileStream.CopyTo(memoryStream);
-                                                    reqIF.EmbeddedObjects.Add(new EmbeddedObject()
+                                                    reqif.EmbeddedObjects.Add(new EmbeddedObject()
                                                     {
                                                         Name = fileName,
-                                                        ImageName = imageName,
-                                                        ObjectValue = memoryStream,
-                                                        PreviewImage = new System.Drawing.Bitmap(System.IO.Path.GetDirectoryName(xmlFilePath) + "\\" + imageName)
+                                                        ObjectValue = memoryStream
                                                     });
                                                 }
                                             }
                                             catch (DirectoryNotFoundException dnfe)
                                             {
-             
+
                                             }
                                         }
-
                                     }
                                 }
                             }
                         }
-                        return reqIF;
+                        return reqifs;
                     }
                 }
 
@@ -237,13 +288,13 @@ namespace ReqIFSharp
             var a = Assembly.GetExecutingAssembly();
             var type = this.GetType();
             var @namespace = type.Namespace;
-            var reqifSchemaResourceName = string.Format("{0}.Resources.{1}", @namespace, resourceName);
+            var reqifSchemaResourceName = $"{@namespace}.Resources.{resourceName}";
 
             var stream = a.GetManifestResourceStream(reqifSchemaResourceName);
 
             if (stream == null)
             {
-                throw new MissingManifestResourceException(string.Format("The {0} resource could not be found", reqifSchemaResourceName));
+                throw new MissingManifestResourceException($"The {reqifSchemaResourceName} resource could not be found");
             }
 
             return XmlSchema.Read(stream, validationEventHandler);
@@ -261,7 +312,7 @@ namespace ReqIFSharp
         /// <returns>
         /// A fully dereferenced <see cref="ReqIF"/> object graph
         /// </returns>
-        private ReqIF ValidatingDeserialization(string xmlFilePath, ValidationEventHandler validationEventHandler)
+        private IEnumerable<ReqIF>  ValidatingDeserialization(string xmlFilePath, ValidationEventHandler validationEventHandler)
         {
             var settings = new XmlReaderSettings { ValidationType = ValidationType.Schema };
             settings.ValidationFlags |= XmlSchemaValidationFlags.ProcessInlineSchema;
@@ -287,9 +338,13 @@ namespace ReqIFSharp
                 {
                     var serializer = new XmlSerializer(typeof(ReqIF));
                     var reqIf = (ReqIF)serializer.Deserialize(reader);
-                    return reqIf;
+
+                    var result = new List<ReqIF>();
+                    result.Add(reqIf);
+                    return result;
                 }
             }
         }
+#endif
     }
 }

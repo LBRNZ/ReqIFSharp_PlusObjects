@@ -86,8 +86,11 @@ namespace ReqIFSharp
                     throw new InvalidOperationException($"Cannot use {value} as value for this AttributeValueInteger.");
                 }
 
-                this.TheValue = castValue;
-                NotifyPropertyChanged();
+                if (this.TheValue != castValue)
+                {
+                    this.TheValue = castValue;
+                    NotifyPropertyChanged();
+                }
             }
         }
 

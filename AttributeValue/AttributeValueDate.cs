@@ -82,8 +82,11 @@ namespace ReqIFSharp
                     throw new InvalidOperationException($"Cannot use {value} as value for this AttributeValueDate.");
                 }
 
-                this.TheValue = datetime;
-                NotifyPropertyChanged();
+                if (this.TheValue != datetime)
+                {
+                    this.TheValue = datetime;
+                    NotifyPropertyChanged();
+                }
             }
         }
 
@@ -133,7 +136,7 @@ namespace ReqIFSharp
         public override void ReadXml(XmlReader reader)
         {
             var value = reader["THE-VALUE"];
-            this.TheValue = XmlConvert.ToDateTime(value, XmlDateTimeSerializationMode.Utc);
+            this.TheValue = XmlConvert.ToDateTime(value, XmlDateTimeSerializationMode.RoundtripKind);
 
             while (reader.Read())
             {
@@ -144,7 +147,7 @@ namespace ReqIFSharp
                     this.Definition = this.ReqIFContent.SpecTypes.SelectMany(x => x.SpecAttributes).OfType<AttributeDefinitionDate>().SingleOrDefault(x => x.Identifier == reference);
                     if (this.Definition == null)
                     {
-                        throw new InvalidOperationException(string.Format("The attribute-definition Date {0} could not be found for the value.", reference));
+                        throw new InvalidOperationException($"The attribute-definition Date {reference} could not be found for the value.");
                     }
                 }
             }
